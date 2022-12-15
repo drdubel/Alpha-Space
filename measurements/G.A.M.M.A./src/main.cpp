@@ -3,59 +3,35 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-HardwareSerial mySerial(PB11, PB10);
+Adafruit_L3GD20 gyro;
 
-Adafruit_L3GD20_Unified gyro = Adafruit_L3GD20_Unified(20);
-
-void displaySensorDetails(void) {
-    sensor_t sensor;
-    gyro.getSensor(&sensor);
-    mySerial.println("------------------------------------");
-    mySerial.print("Sensor:       ");
-    mySerial.println(sensor.name);
-    mySerial.print("Driver Ver:   ");
-    mySerial.println(sensor.version);
-    mySerial.print("Unique ID:    ");
-    mySerial.println(sensor.sensor_id);
-    mySerial.print("Max Value:    ");
-    mySerial.print(sensor.max_value);
-    mySerial.println(" rad/s");
-    mySerial.print("Min Value:    ");
-    mySerial.print(sensor.min_value);
-    mySerial.println(" rad/s");
-    mySerial.print("Resolution:   ");
-    mySerial.print(sensor.resolution);
-    mySerial.println(" rad/s");
-    mySerial.println("------------------------------------");
-    mySerial.println("");
-    delay(500);
-}
-
-void setup(void) {
-    mySerial.begin(115200);
-    mySerial.println("Gyroscope Test");
-    mySerial.println("");
-    gyro.enableAutoRange(true);
+void setup() {
+    Serial.begin(115200);
     if (!gyro.begin()) {
-        mySerial.println("Ooops, no L3GD20 detected ... Check your wiring!");
+        Serial.println(
+            "Oops ... unable to initialize the L3GD20. Check your wiring!");
         while (1)
             ;
+    } else {
+        Serial.println(
+            "Yaaay ... able to initialize the L3GD20. Don't check your "
+            "wiring!");
     }
-    displaySensorDetails();
 }
 
-void loop(void) {
-    sensors_event_t event;
-    gyro.getEvent(&event);
-    mySerial.print("X: ");
-    mySerial.print(event.gyro.x);
-    mySerial.print("  ");
-    mySerial.print("Y: ");
-    mySerial.print(event.gyro.y);
-    mySerial.print("  ");
-    mySerial.print("Z: ");
-    mySerial.print(event.gyro.z);
-    mySerial.print("  ");
-    mySerial.println("rad/s ");
-    delay(500);
+void loop() {
+    if (Serial.available() > 0) {
+        Serial.print((char)Serial.read());
+    }
+    gyro.read();
+    Serial.print("X: ");
+    Serial.print((int)gyro.data.x);
+    Serial.print(" ");
+    Serial.print("Y: ");
+    Serial.print((int)gyro.data.y);
+    Serial.print(" ");
+    Serial.print("Z: ");
+    Serial.println((int)gyro.data.z);
+    Serial.print(" ");
+    delay(100);
 }
